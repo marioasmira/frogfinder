@@ -112,9 +112,17 @@ while True:
         # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
 
+    print("[INFO] Changing camera resolution and framerate...")
     camera.resolution = tuple(conf["capture_resolution"])
     camera.framerate = conf["capture_fps"]
     video_name = video + time.strftime("%Y%m%d_%H%M%S") + ".h264"
+
+    print("[INFO] Starting recording.")
     camera.start_recording(video_name)
     camera.wait_recording(conf["upload_seconds"])
     camera.stop_recording()
+    print("[INFO] Finished recording!")
+    print("[INFO] Returning camera to search values.")
+    camera.resolution = tuple(conf["resolution"])
+    camera.framerate = conf["fps"]
+
