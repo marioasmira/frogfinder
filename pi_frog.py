@@ -32,7 +32,6 @@ video = conf["video_path"]
 print("[INFO] warming up...")
 time.sleep(conf["camera_warmup_time"])
 avg = None
-lastUploaded = datetime.datetime.now()
 motionCounter = 0
 
 while True:
@@ -112,17 +111,24 @@ while True:
         # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
 
+    # change resolution and framerate for HD
     print("[INFO] Changing camera resolution and framerate...")
     camera.resolution = tuple(conf["capture_resolution"])
     camera.framerate = conf["capture_fps"]
     video_name = video + time.strftime("%Y%m%d_%H%M%S") + ".h264"
 
-    print("[INFO] Starting recording.")
+    # record video
+    print("[INFO] Start recording.")
     camera.start_recording(video_name)
     camera.wait_recording(conf["upload_seconds"])
     camera.stop_recording()
     print("[INFO] Finished recording!")
     print("[INFO] Returning camera to search values.")
+    
+    # return values to originals
     camera.resolution = tuple(conf["resolution"])
     camera.framerate = conf["fps"]
+    rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
+    motionCounter = 0
+    avg = None
 
