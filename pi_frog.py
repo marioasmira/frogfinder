@@ -35,7 +35,7 @@ avg = None
 lastUploaded = datetime.datetime.now()
 motionCounter = 0
 
-while true:
+while True:
     #capture frames from the camera
     for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # grab the raw NumPy array representing the image and initialize
