@@ -29,19 +29,19 @@ git clone https://github.com/marioasmira/frogfinder
 
 * Start by focusing the picamera to the correct surface where you will be detecting movement.
 * Modify whichever relevant parameters in the `conf.json` file:
-  - debug: true or false, to print the values evaluated for capture onscreen; 
-	video_path: the absolute path to where you want to save your video files;
-	upload_seconds: float number, to specify duration in seconds for video recording after motion is detected;
-	min_motion_frames: integer, the number of consecutive frames where motion is detected before starting to record;
-	camera_warmup_time: float number, to specify the duration in seconds to let the camera warmup before starting work;
-	delta_thresh: integer, used to specify the threshold at which to indicate there is a difference between frames;
-	detection_resolution: [width, height], the resolution to use during the motion detection phase;
-	detection_fps: integer, framerate to use during the detection phase;
-	capture_resolution: [width, height], the resolution to use during the recording phase;
-	capture_fps: integer, framerate to use during the recording phase;
-	min_area: integer, minimum area in the difference between frames to be considered as relevant motion (a frog moving);
-	max_area: integer, maximum area in the difference between frames to be considered as relevant motion (the camera shifting);
-	max_areas: integer, the number of areas in the difference between frames to be considered. 
+  - `debug`: true or false, to print the values evaluated for capture onscreen; 
+  * `video_path`: the absolute path to where you want to save your video files;
+  * `upload_seconds`: float number, to specify duration in seconds for video recording after motion is detected;
+  * `min_motion_frames`: integer, the number of consecutive frames where motion is detected before starting to record;
+  * `camera_warmup_time`: float number, to specify the duration in seconds to let the camera warmup before starting work;
+  * `delta_thresh`: integer, used to specify the threshold at which to indicate there is a difference between frames;
+  * `detection_resolution`: [width, height], the resolution to use during the motion detection phase;
+  * `detection_fps`: integer, framerate to use during the detection phase;
+  * `capture_resolution`: [width, height], the resolution to use during the recording phase;
+  * `capture_fps`: integer, framerate to use during the recording phase;
+  * `min_area`: integer, minimum area in the difference between frames to be considered as relevant motion (a frog moving);
+  * `max_area`: integer, maximum area in the difference between frames to be considered as relevant motion (the camera shifting);
+  * `max_areas`: integer, the number of areas in the difference between frames to be considered. 
 * After the parameters are chosen it is just a matter of running:
 ```
 python3 pi_frog.py --conf conf.json
@@ -58,5 +58,5 @@ python3 pi_frog.py --conf conf.json
 
 ## Acknowledgments
 
-Largest contribution for inspiration
+Largest contribution for inspiration  
 [Home surveillance and motion detection with the Raspberry Pi, Python, OpenCV, and Dropbox](https://www.pyimagesearch.com/2015/06/01/home-surveillance-and-motion-detection-with-the-raspberry-pi-python-and-opencv/)
