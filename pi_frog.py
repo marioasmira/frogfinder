@@ -34,6 +34,15 @@ time.sleep(conf["camera_warmup_time"])
 avg = None
 motionCounter = 0
 
+# set up data file
+data_file = open((time.strftime("%Y%m%d_%H%M%S") + "_" +
+    str(conf["min_motion_frames"]) + "_" +
+    str(conf["min_area"]) + ".csv"), "w+")
+data_file.write("time,motionCounter,iter,contour\n")
+if conf["debug"]:
+    print("time,motionCounter,iter,contour\n")
+
+# start loop
 while True:
     #capture frames from the camera
     for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -70,46 +79,39 @@ while True:
 
 
         # loop over the contours
-        for c in cnts:
-            # if the contour is too small, ignore it
-            if cv2.contourArea(c) < conf["min_area"]:
-                continue
-
-            # compute the bounding box for the contour, draw it on the frame,
-            # and update the text
-            (x, y, w, h) = cv2.boundingRect(c)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            text = "Frog!"
+        counter = 0
+        if len(cnts) < conf["max_areas"]:
+            for c in cnts:
+                data_file.write(time.strftime("%Y%m%d_%H%M%S") + "," +
+                        str(motionCounter) + "," +
+                        str(counter) + "," +
+                        str(cv2.contourArea(c)) + "\n")
+                if conf["debug"]:
+                        print(time.strftime("%Y%m%d_%H%M%S") + "    " +
+                            str(motionCounter) + "    " +
+                            str(counter) + "    " +
+                            str(cv2.contourArea(c)))
+                # if the contour is too small, ignore it
+                counter += 1
+                if ((cv2.contourArea(c) > conf["min_area"]) and (cv2.contourArea(c) < conf["max_area"])):
+                    # and update the text
+                    text = "Frog!"
+                else:
+                    continue
 
         if text == "Frog!":
             motionCounter += 1
             # check to see if the number of frames with consistent motion is
             # high enough
-            if motionCounter >= conf["min_motion_frames"]:
+            if (motionCounter >= conf["min_motion_frames"]):
                 print("Got one!")
                 break
         else:
             motionCounter = 0
 
-        # draw the text and timestamp on the frame
-        ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-        cv2.putText(frame, "Frog Status: {}".format(text), (10, 20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-        cv2.putText(frame, ts, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-            0.35, (0, 0, 255), 1)
-
-        # check to see if the frames should be displayed to screen
-        if conf["show_video"]:
-            # display the security feed
-            cv2.imshow("Security Feed", frame)
-            key = cv2.waitKey(1) & 0xFF
-
-            # if the `q` key is pressed, break from the lop
-            if key == ord("q"):
-                break
-
         # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
+
 
     # change resolution and framerate for HD
     print("[INFO] Changing camera resolution and framerate...")
@@ -131,4 +133,7 @@ while True:
     rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
     motionCounter = 0
     avg = None
+
+    # warmup to new resolution
+    time.sleep(conf["camera_warmup_time"])
 

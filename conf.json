@@ -1,13 +1,15 @@
 {
-	"show_video": false, 
+	"debug": true, 
 	"video_path": "/home/pi/Videos/",
-	"upload_seconds": 20.0,
+	"upload_seconds": 60.0,
 	"min_motion_frames": 2,
 	"camera_warmup_time": 2.0,
 	"delta_thresh": 5,
 	"resolution": [640, 480],
-	"fps": 5,
+	"fps": 30,
 	"capture_resolution": [1920, 1080],
 	"capture_fps": 30,
-	"min_area": 5000
+	"min_area": 200,
+	"max_area": 10000,
+	"max_areas": 5
 }
