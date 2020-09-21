@@ -58,4 +58,4 @@ python3 pi_frog.py --conf conf.json
 
 ## References
 
-Adrian Rosebrock, *Home surveillance and motion detection with the Raspberry Pi, Python, OpenCV, and Dropbox*, PyImageSearch, [https://www.pyimagesearch.com/2015/06/01/home-surveillance-and-motion-detection-with-the-raspberry-pi-python-and-opencv/]https://www.pyimagesearch.com/2015/06/01/home-surveillance-and-motion-detection-with-the-raspberry-pi-python-and-opencv/, accessed on 19 September 2020
+Adrian Rosebrock, *Home surveillance and motion detection with the Raspberry Pi, Python, OpenCV, and Dropbox*, PyImageSearch, [https://www.pyimagesearch.com/2015/06/01/home-surveillance-and-motion-detection-with-the-raspberry-pi-python-and-opencv/](https://www.pyimagesearch.com/2015/06/01/home-surveillance-and-motion-detection-with-the-raspberry-pi-python-and-opencv/, accessed on 19 September 2020)
