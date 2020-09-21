@@ -1,8 +1,8 @@
 {
 	"debug": true, 
-	"video_path": "/home/pi/Videos/",
+	"video_path": "/mnt/storage/frog/",
 	"upload_seconds": 60.0,
-	"min_motion_frames": 2,
+	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
 	"delta_thresh": 5,
 	"resolution": [640, 480],
