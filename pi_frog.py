@@ -5,6 +5,7 @@ import argparse
 import warnings
 import imutils
 import json
+from datetime import datetime
 import time
 import cv2
 import sys
@@ -36,7 +37,8 @@ avg = None
 motion_counter = 0
 
 # set up data file
-data_file = open((time.strftime("%Y%m%d_%H%M%S") + "_" +
+data_time = datetime.now()
+data_file = open((data_time.strftime("%Y%m%d_%H%M%S") + "_" +
     str(conf["min_motion_frames"]) + "_" +
     str(conf["min_area"]) + ".csv"), "w+")
 data_file.write("time,motion_counter,iter,contour\n")
@@ -82,15 +84,16 @@ while True:
 
         # loop over the contours
         counter = 0 # to print how many areas were picked up as motion
-        frame_time = time.strftime("%Y%m%d_%H%M%S%f")   # each frame can have more than one area
+        frame_time  = datetime.now()    # each frame can have more than one area
+        formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
         if len(cnts) < conf["max_areas"]:
             for c in cnts:
-                data_file.write(frame_time + "," +
+                data_file.write(formated_frame_time + "," +
                         str(motion_counter) + "," +
                         str(counter) + "," +
                         str(cv2.contourArea(c)) + "\n")
                 if conf["debug"]:
-                        print(frame_time + "    " +
+                        print(formated_frame_time + "    " +
                             str(motion_counter) + "    " +
                             str(counter) + "    " +
                             str(cv2.contourArea(c)))
@@ -119,7 +122,8 @@ while True:
     print("[INFO] Changing camera resolution and framerate...")
     cam.resolution = tuple(conf["capture_resolution"])
     cam.framerate = conf["capture_fps"]
-    video_name = video + time.strftime("%Y%m%d_%H%M%S") + ".h264"
+    video_time = datetime.now()
+    video_name = video + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
 
     # record video
     print("[INFO] Start recording.")
