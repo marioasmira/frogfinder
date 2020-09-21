@@ -1,5 +1,4 @@
 # import the necessary packages
-from pyimagesearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import argparse
@@ -23,9 +22,9 @@ conf = json.load(open(args["conf"]))
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = tuple(conf["resolution"])
-camera.framerate = conf["fps"]
-rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
+camera.resolution = tuple(conf["detection_resolution"])
+camera.framerate = conf["detection_fps"]
+rawCapture = PiRGBArray(camera, size=tuple(conf["detection_resolution"]))
 video = conf["video_path"]
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
@@ -49,7 +48,6 @@ while True:
         # grab the raw NumPy array representing the image and initialize
         # the timestamp and occupied/unoccupied text
         frame = f.array
-        timestamp = datetime.datetime.now()
         text = "No frog"
         # resize the frame, convert it to grayscale, and blur it
         frame = imutils.resize(frame, width=500)
@@ -128,9 +126,9 @@ while True:
     print("[INFO] Returning camera to search values.")
     
     # return values to originals
-    camera.resolution = tuple(conf["resolution"])
-    camera.framerate = conf["fps"]
-    rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
+    camera.resolution = tuple(conf["detection_resolution"])
+    camera.framerate = conf["detection_fps"]
+    rawCapture = PiRGBArray(camera, size=tuple(conf["detection_resolution"]))
     motionCounter = 0
     avg = None
 
