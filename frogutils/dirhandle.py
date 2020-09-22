@@ -1,3 +1,5 @@
+import os
+
 def make_folder(directory):
     if not os.path.exists(directory):
         try:

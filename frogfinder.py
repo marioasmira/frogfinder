@@ -150,8 +150,7 @@ try:
         cam.start_recording(video_name)
         cam.wait_recording(conf["upload_seconds"])
         cam.stop_recording()
-        print("[INFO] Finished recording!")
-        print("[INFO] Returning camera to search values.")
+        print("[INFO] Finished recording! Returning camera to search values.")
         
         # return values to originals
         cam.resolution = tuple(conf["detection_resolution"])
