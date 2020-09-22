@@ -1,4 +1,5 @@
 # import the necessary packages
+from frogutils.dirhandle import make_folder
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import argparse
@@ -43,12 +44,7 @@ date_string = data_time.strftime("%Y%m%d")
 
 # make directory for day
 video_folder = video + date_string + "/"
-if not os.path.exists(video_folder):
-    try:
-        os.makedirs(video_folder)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
+make_folder(video_folder)
 
 # set up data file
 data_string =  data_time.strftime("%Y%m%d_%H%M%S")
@@ -69,12 +65,7 @@ try:
             date_string = check_date_string
             # make directory for day
             video_folder = video + date_string + "/"
-            if not os.path.exists(video_folder):
-                try:
-                    os.makedirs(video_folder)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
+            make_folder(video_folder)
 
         #capture frames from the camera
         for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
