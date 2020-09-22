@@ -137,6 +137,6 @@ while True:
     cam.resolution = tuple(conf["detection_resolution"])
     cam.framerate = conf["detection_fps"]
     raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
-    motionCounter = 0
+    motion_counter = 0
     avg = None
 
