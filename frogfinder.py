@@ -60,6 +60,22 @@ data_file.write("time,motion_counter,iter,contour\n")
 try:
     # start loop
     while True:
+        # check if still the same day
+        check_data_time = datetime.now()
+        check_date_string = check_data_time.strftime("%Y%m%d")
+
+        # if it's a different day, make a new folder
+        if check_date_string != date_string:
+            date_string = check_date_string
+            # make directory for day
+            video_folder = video + date_string + "/"
+            if not os.path.exists(video_folder):
+                try:
+                    os.makedirs(video_folder)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+
         #capture frames from the camera
         for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
             # grab the raw NumPy array representing the image and initialize
