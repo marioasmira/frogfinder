@@ -1,4 +1,5 @@
 import os
+import errno
 
 def make_folder(directory):
     if not os.path.exists(directory):
