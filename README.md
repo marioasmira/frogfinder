@@ -35,6 +35,7 @@ git clone https://github.com/marioasmira/frogfinder
   * `min_motion_frames`: integer, the number of consecutive frames where motion is detected before starting to record;
   * `camera_warmup_time`: float number, to specify the duration in seconds to let the camera warmup before starting work;
   * `delta_thresh`: integer, used to specify the threshold at which to indicate there is a difference between frames;
+  * `shutter_speed`: integer, shutter speed in micro seconds to synchronize capture and lights connected directly to main. Default value set to European 50 Mhz.
   * `detection_resolution`: [width, height], the resolution to use during the motion detection phase;
   * `detection_fps`: integer, framerate to use during the detection phase;
   * `capture_resolution`: [width, height], the resolution to use during the recording phase;
