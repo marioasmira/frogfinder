@@ -29,6 +29,7 @@ conf = json.load(open(args["conf"]))
 cam = PiCamera()
 cam.resolution = tuple(conf["detection_resolution"])
 cam.framerate = conf["detection_fps"]
+cam.shutter_speed = conf["shutter_speed"]
 raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
 video = conf["video_path"]
 

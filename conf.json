@@ -5,11 +5,12 @@
 	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
 	"delta_thresh": 5,
+	"shutter_speed": 30000,
 	"detection_resolution": [640, 480],
 	"detection_fps": 30,
 	"capture_resolution": [1920, 1080],
 	"capture_fps": 30,
 	"min_area": 200,
-	"max_area": 10000,
-	"max_areas": 5
+	"max_area": 2500,
+	"max_areas": 10
 }
