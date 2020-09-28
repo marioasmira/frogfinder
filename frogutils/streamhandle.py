@@ -1,15 +1,24 @@
 import imutils
 import cv2
 from datetime import datetime
+import RPi.GPIO as GPIO
+import time
 
 def stream_track(cam, raw_capture, conf, data_file, avg, motion_counter):
+    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_UP)
     #capture frames from the camera
     for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+        button_off = GPIO.input(conf["button_pin"])
+        if not button_off:
+            print("[INFO] Pausing...")
+            time.sleep(1)
+            raw_capture.truncate(0)
+            return True
+
         # grab the raw NumPy array representing the image and initialize
         # the timestamp and occupied/unoccupied text
         frame = f.array
         presence = False
-
         # resize the frame, convert it to grayscale, and blur it
         frame = imutils.resize(frame, width=500)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -66,7 +75,7 @@ def stream_track(cam, raw_capture, conf, data_file, avg, motion_counter):
             # check to see if the number of frames with consistent motion is high enough
             if (motion_counter >= conf["min_motion_frames"]):
                 print("[INFO] Got one!")
-                break
+                return False
         else:
             motion_counter = 0
 

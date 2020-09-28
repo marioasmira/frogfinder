@@ -32,13 +32,12 @@ conf = json.load(open(args["conf"]))
 GPIO.setmode(GPIO.BCM)
 
 # inside a try-finally to make sure the pins are cleaned up in case of wrong pins
-try:
-    GPIO.setup(conf["on_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["record_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["alert_led_pin"], GPIO.OUT)
-
-finally:
-    GPIO.cleanup()
+GPIO.setup(conf["on_led_pin"], GPIO.OUT)
+GPIO.setup(conf["record_led_pin"], GPIO.OUT)
+GPIO.setup(conf["temp_led_pin"], GPIO.OUT)
+GPIO.setup(conf["hum_led_pin"], GPIO.OUT)
+GPIO.setup(conf["pause_led_pin"], GPIO.OUT)
+GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
 # define temperature and humidity device
 #dht_device = adafruit_dht.DHT11(board.D24)
@@ -87,39 +86,55 @@ try:
             video_folder = video + date_string + "/"
             dirhandle.make_folder(video_folder)
 
-        streamhandle.stream_track(cam, raw_capture, conf, data_file, avg, motion_counter)
+        # check if motion and if button is pressed
+        will_pause = streamhandle.stream_track(cam, raw_capture, conf, data_file, avg, motion_counter)
 
-        # change resolution and framerate for HD
-        print("[INFO] Changing camera resolution and framerate...")
-        cam.resolution = tuple(conf["capture_resolution"])
-        cam.framerate = conf["capture_fps"]
-        video_time = datetime.now()
-        video_name = video_folder + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
+        # if going to pause turn on led and wait for resume press
+        if will_pause:
+            print("[INFO] Paused!")
+            ledhandle.LED_ON(conf["pause_led_pin"])
+            time.sleep(2)
+            GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_UP)
+            continuing = False 
+            while(not continuing):
+                continuing = not GPIO.input(conf["button_pin"])
+            print("[INFO] Continuing...")
+            time.sleep(2)
+            ledhandle.LED_OFF(conf["pause_led_pin"])
 
-
-        ledhandle.LED_ON(conf["record_led_pin"])
-        # record video
-        print("[INFO] Start recording.")
-        cam.start_recording(video_name)
-        cam.wait_recording(conf["upload_seconds"])
-        cam.stop_recording()
-        print("[INFO] Finished recording!")
-        print("[INFO] Returning camera to search values.")
-        
-        ledhandle.LED_OFF(conf["record_led_pin"])
-        # return values to originals
-        cam.resolution = tuple(conf["detection_resolution"])
-        cam.framerate = conf["detection_fps"]
-        raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
-        motion_counter = 0
-        avg = None
+        # otherwise starts a recording
+        else:
+            # change resolution and framerate for HD
+            print("[INFO] Changing camera resolution and framerate...")
+            cam.resolution = tuple(conf["capture_resolution"])
+            cam.framerate = conf["capture_fps"]
+            video_time = datetime.now()
+            video_name = video_folder + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
 
 
+            ledhandle.LED_ON(conf["record_led_pin"])
+            # record video
+            print("[INFO] Start recording.")
+            cam.start_recording(video_name)
+            cam.wait_recording(conf["upload_seconds"])
+            cam.stop_recording()
+            print("[INFO] Finished recording!")
+            print("[INFO] Returning camera to search values.")
+            
+            ledhandle.LED_OFF(conf["record_led_pin"])
+            # return values to originals
+            cam.resolution = tuple(conf["detection_resolution"])
+            cam.framerate = conf["detection_fps"]
+            raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
+            motion_counter = 0
+            avg = None
 
 finally:
     ledhandle.LED_OFF(conf["on_led_pin"])
     ledhandle.LED_OFF(conf["record_led_pin"])
-    ledhandle.LED_OFF(conf["alert_led_pin"])
+    ledhandle.LED_OFF(conf["temp_led_pin"])
+    ledhandle.LED_OFF(conf["hum_led_pin"])
+    ledhandle.LED_OFF(conf["pause_led_pin"])
     cam.close()
     data_file.close()
     GPIO.cleanup()
