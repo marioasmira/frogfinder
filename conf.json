@@ -12,5 +12,9 @@
 	"capture_fps": 30,
 	"min_area": 200,
 	"max_area": 2500,
-	"max_areas": 10
+	"max_areas": 10,
+	"on_led_pin": 4,
+	"record_led_pin": 17,
+	"alert_led_pin": 27,
+	"dht_devide_pin": 18
 }
