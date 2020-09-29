@@ -93,14 +93,14 @@ try:
         if will_pause:
             print("[INFO] Paused!")
             ledhandle.LED_ON(conf["pause_led_pin"])
-            time.sleep(1)
-            GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_UP)
-            continuing = False 
-            while(not continuing):
-                continuing = not GPIO.input(conf["button_pin"])
+            time.sleep(2)
+            GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+            paused = True 
+            while(paused):
+                paused = not GPIO.input(conf["button_pin"])
             print("[INFO] Continuing...")
-            time.sleep(1)
             ledhandle.LED_OFF(conf["pause_led_pin"])
+            time.sleep(2)
 
         # otherwise starts a recording
         else:

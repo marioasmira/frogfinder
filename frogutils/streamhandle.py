@@ -5,13 +5,13 @@ import RPi.GPIO as GPIO
 import time
 
 def stream_track(cam, raw_capture, conf, data_file, avg, motion_counter):
-    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
     #capture frames from the camera
     for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
         button_off = GPIO.input(conf["button_pin"])
-        if not button_off:
+        if button_off:
             print("[INFO] Pausing...")
-            time.sleep(1)
+            time.sleep(2)
             raw_capture.truncate(0)
             return True
 
