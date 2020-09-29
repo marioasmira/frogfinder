@@ -3,9 +3,34 @@ import cv2
 from datetime import datetime
 import RPi.GPIO as GPIO
 import time
+import Adafruit_DHT
+import frogutils.ledhandle as ledhandle 
 
-def stream_track(cam, raw_capture, conf, data_file, avg, motion_counter):
+def save_env(env_file, dht_device, conf):
+    humidity, temperature = Adafruit_DHT.read_retry(dht_device, conf["dht_device_pin"])
+    frame_time  = datetime.now()    # each frame can have more than one area
+    formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
+    if humidity is not None and temperature is not None:
+        env_file.write(formated_frame_time + "," +
+                "{:.2f}".format(temperature) + "," +
+                "{:.2f}".format(humidity) + "\n")
+        if conf["debug"]:
+            print(formated_frame_time + ", " +
+                "{:.2f}".format(temperature) + "C ," +
+                "{:.2f}".format(humidity) + "%")
+        if humidity >= conf["max_hum"] or humidity <= conf["min_hum"]:
+            ledhandle.LED_ON(conf["hum_led_pin"])
+        else:
+            ledhandle.LED_OFF(conf["hum_led_pin"])
+        if temperature >= conf["max_temp"] or temperature <= conf["min_temp"]:
+            ledhandle.LED_ON(conf["temp_led_pin"])
+        else:
+            ledhandle.LED_OFF(conf["temp_led_pin"])
+
+def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_device, env_file):
     GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    previous_time = datetime.now()
+
     #capture frames from the camera
     for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
         button_off = GPIO.input(conf["button_pin"])
@@ -14,6 +39,11 @@ def stream_track(cam, raw_capture, conf, data_file, avg, motion_counter):
             time.sleep(2)
             raw_capture.truncate(0)
             return True
+
+        now_time = datetime.now()
+        if(now_time - previous_time).seconds >= conf["env_save_time"]:
+            save_env(env_file, dht_device, conf)
+            previous_time = datetime.now()
 
         # grab the raw NumPy array representing the image and initialize
         # the timestamp and occupied/unoccupied text
