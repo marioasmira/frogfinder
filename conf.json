@@ -21,8 +21,8 @@
 	"button_pin": 22,
 	"dht_device_pin": 18,
 	"env_save_time": 30,
-	"max_hum": 50,
-	"min_hum": 49,
-	"max_temp": 20,
-	"min_temp": 19
+	"max_hum": 100,
+	"min_hum": 80,
+	"max_temp": 27,
+	"min_temp": 21
 }
