@@ -1,6 +1,6 @@
 {
 	"debug": true, 
-	"video_path": "/mnt/storage/frog/",
+	"video_path": "/home/pi/Videos/",
 	"upload_seconds": 60.0,
 	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
@@ -19,5 +19,10 @@
 	"hum_led_pin": 23,
 	"pause_led_pin": 24,
 	"button_pin": 22,
-	"dht_devide_pin": 18
+	"dht_device_pin": 18,
+	"env_save_time": 30,
+	"max_hum": 50,
+	"min_hum": 49,
+	"max_temp": 20,
+	"min_temp": 19
 }
