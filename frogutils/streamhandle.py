@@ -5,6 +5,7 @@ import RPi.GPIO as GPIO
 import time
 import Adafruit_DHT
 import frogutils.ledhandle as ledhandle 
+import frogutils.displayhandle as displayhandle
 
 def save_env(env_file, dht_device, conf):
     humidity, temperature = Adafruit_DHT.read_retry(dht_device, conf["dht_device_pin"])
@@ -12,20 +13,21 @@ def save_env(env_file, dht_device, conf):
     formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
     if humidity is not None and temperature is not None:
         env_file.write(formated_frame_time + "," +
-                "{:.2f}".format(temperature) + "," +
-                "{:.2f}".format(humidity) + "\n")
+                "{0:0.0f}".format(temperature) + "," +
+                "{0:0.0f}".format(humidity) + "\n")
         if conf["debug"]:
             print(formated_frame_time + ", " +
-                "{:.2f}".format(temperature) + "C ," +
-                "{:.2f}".format(humidity) + "%")
-        if humidity >= conf["max_hum"] or humidity <= conf["min_hum"]:
+                "{0:0.0f}".format(temperature) + "C, " +
+                "{0:0.0f}".format(humidity) + "%")
+        if humidity > conf["max_hum"] or humidity < conf["min_hum"]:
             ledhandle.LED_ON(conf["hum_led_pin"])
         else:
             ledhandle.LED_OFF(conf["hum_led_pin"])
-        if temperature >= conf["max_temp"] or temperature <= conf["min_temp"]:
+        if temperature > conf["max_temp"] or temperature < conf["min_temp"]:
             ledhandle.LED_ON(conf["temp_led_pin"])
         else:
             ledhandle.LED_OFF(conf["temp_led_pin"])
+        displayhandle.display(conf, int(temperature), int(humidity))
 
 def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_device, env_file):
     GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)

@@ -9,7 +9,7 @@
 	"detection_resolution": [640, 480],
 	"detection_fps": 30,
 	"capture_resolution": [1920, 1080],
-	"capture_fps": 30,
+	"capture_fps": 10,
 	"min_area": 200,
 	"max_area": 2500,
 	"max_areas": 10,
@@ -20,9 +20,12 @@
 	"pause_led_pin": 24,
 	"button_pin": 22,
 	"dht_device_pin": 18,
-	"env_save_time": 30,
+	"env_save_time": 5,
 	"max_hum": 100,
 	"min_hum": 80,
 	"max_temp": 27,
-	"min_temp": 21
+	"min_temp": 21,
+	"display_pins": [5,26,16,7,8,6,20],
+	"digit_pins": [11,13,19,21],
+	"display_dot_pin": 12
 }

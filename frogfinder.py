@@ -38,6 +38,11 @@ GPIO.setup(conf["hum_led_pin"], GPIO.OUT)
 GPIO.setup(conf["pause_led_pin"], GPIO.OUT)
 GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 GPIO.setup(conf["dht_device_pin"], GPIO.IN)
+for pin in conf["display_pins"]:
+  GPIO.setup(pin,GPIO.OUT) # setting pins for segments
+for pin in conf["digit_pins"]:
+  GPIO.setup(pin,GPIO.OUT) # setting pins for digit selector
+GPIO.setup(conf["display_dot_pin"],GPIO.OUT) # setting dot pin
 
 # define temperature and humidity device
 dht_device = Adafruit_DHT.DHT11
@@ -70,8 +75,10 @@ data_file = open((data_string + "_" +
     str(conf["min_area"]) + ".csv"), "w+")
 data_file.write("time,motion_counter,iter,contour\n")
 
-env_file = open((data_string + "_env"), "w+")
+env_file = open((data_string + "_env.csv"), "w+")
 env_file.write("time,temperature,humidity\n")
+
+streamhandle.save_env(env_file, dht_device, conf)
 
 try:
     # start loop
