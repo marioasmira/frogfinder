@@ -12,8 +12,7 @@ import time
 import sys
 import os
 import RPi.GPIO as GPIO
-import board
-import adafruit_dht
+import Adafruit_DHT
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -38,9 +37,10 @@ GPIO.setup(conf["temp_led_pin"], GPIO.OUT)
 GPIO.setup(conf["hum_led_pin"], GPIO.OUT)
 GPIO.setup(conf["pause_led_pin"], GPIO.OUT)
 GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+GPIO.setup(conf["dht_device_pin"], GPIO.IN)
 
 # define temperature and humidity device
-#dht_device = adafruit_dht.DHT11(board.D24)
+dht_device = Adafruit_DHT.DHT11
 
 # initialize the camera and grab a reference to the raw camera capture
 cam = PiCamera()
@@ -70,6 +70,9 @@ data_file = open((data_string + "_" +
     str(conf["min_area"]) + ".csv"), "w+")
 data_file.write("time,motion_counter,iter,contour\n")
 
+env_file = open((data_string + "_env"), "w+")
+env_file.write("time,temperature,humidity\n")
+
 try:
     # start loop
     while True:
@@ -87,7 +90,7 @@ try:
             dirhandle.make_folder(video_folder)
 
         # check if motion and if button is pressed
-        will_pause = streamhandle.stream_track(cam, raw_capture, conf, data_file, avg, motion_counter)
+        will_pause = streamhandle.stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_device, env_file)
 
         # if going to pause turn on led and wait for resume press
         if will_pause:
@@ -137,4 +140,5 @@ finally:
     ledhandle.LED_OFF(conf["pause_led_pin"])
     cam.close()
     data_file.close()
+    env_file.close()
     GPIO.cleanup()
