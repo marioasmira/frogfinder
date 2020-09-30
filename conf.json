@@ -8,6 +8,7 @@
 	"shutter_speed": 30000,
 	"detection_resolution": [640, 480],
 	"detection_fps": 30,
+	"detection_times": [7, 19],
 	"capture_resolution": [1920, 1080],
 	"capture_fps": 10,
 	"min_area": 200,
