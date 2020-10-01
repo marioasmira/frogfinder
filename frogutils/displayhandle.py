@@ -16,7 +16,13 @@ digit_array = [[0,0,0,0,0,0,1],\
 def display(conf, val1, val2):
     # turn the two values into a list
     list1 = [int(x) for x in str(val1)]
+    # if there's only one digit add a zero before
+    if len(list1) < 2:
+        list1.insert(0,0)
     list2 = [int(x) for x in str(val2)]
+    # if there's only one digit add a zero before
+    if len(list2) < 2:
+        list2.insert(0,0)
     digit_list = list1 + list2
 
     # reset display
