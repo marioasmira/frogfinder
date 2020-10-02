@@ -32,7 +32,7 @@ def display(conf, val1, val2):
         GPIO.output(pin,False)
     GPIO.output(conf["display_dot_pin"], True)
 
-    for n in range(1, 50):
+    for n in range(1, 1000):
         for pos in range(0, 4):
             GPIO.output(conf["digit_pins"][pos], True)
             val = digit_list[pos]
