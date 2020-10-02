@@ -6,6 +6,8 @@ import time
 import Adafruit_DHT
 import frogutils.ledhandle as ledhandle 
 import frogutils.displayhandle as displayhandle
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 
 def is_between(time, time_range):
     if time_range[1] < time_range[0]:
@@ -14,30 +16,37 @@ def is_between(time, time_range):
 
 
 def save_env(env_file, dht_device, conf):
-    humidity, temperature = Adafruit_DHT.read_retry(dht_device, conf["dht_device_pin"])
-    frame_time  = datetime.now()    # each frame can have more than one area
-    formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
-    if humidity is not None and temperature is not None:
-        env_file.write(formated_frame_time + "," +
-                "{0:0.0f}".format(temperature) + "," +
-                "{0:0.0f}".format(humidity) + "\n")
-        if conf["debug"]:
-            print(formated_frame_time + ", " +
-                "{0:0.0f}".format(temperature) + "C, " +
-                "{0:0.0f}".format(humidity) + "%")
-        if humidity > conf["max_hum"] or humidity < conf["min_hum"]:
-            ledhandle.LED_ON(conf["hum_led_pin"])
-        else:
-            ledhandle.LED_OFF(conf["hum_led_pin"])
-        if temperature > conf["max_temp"] or temperature < conf["min_temp"]:
-            ledhandle.LED_ON(conf["temp_led_pin"])
-        else:
-            ledhandle.LED_OFF(conf["temp_led_pin"])
-        displayhandle.display(conf, int(temperature), int(humidity))
-
-def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_device, env_file):
-    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
     previous_time = datetime.now()
+
+    while True:
+        now_time = datetime.now()
+        if(now_time - previous_time).seconds >= conf["env_save_time"]:
+            previous_time = datetime.now()
+
+
+            humidity, temperature = Adafruit_DHT.read_retry(dht_device, conf["dht_device_pin"])
+            frame_time  = datetime.now()    # each frame can have more than one area
+            formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
+            if humidity is not None and temperature is not None:
+                env_file.write(formated_frame_time + "," +
+                        "{0:0.0f}".format(temperature) + "," +
+                        "{0:0.0f}".format(humidity) + "\n")
+                if conf["debug"]:
+                    print(formated_frame_time + ", " +
+                        "{0:0.0f}".format(temperature) + "C, " +
+                        "{0:0.0f}".format(humidity) + "%")
+                if humidity > conf["max_hum"] or humidity < conf["min_hum"]:
+                    ledhandle.LED_ON(conf["hum_led_pin"])
+                else:
+                    ledhandle.LED_OFF(conf["hum_led_pin"])
+                if temperature > conf["max_temp"] or temperature < conf["min_temp"]:
+                    ledhandle.LED_ON(conf["temp_led_pin"])
+                else:
+                    ledhandle.LED_OFF(conf["temp_led_pin"])
+                displayhandle.display(conf, int(temperature), int(humidity))
+
+def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
+    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
     #capture frames from the camera
     for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
@@ -49,10 +58,6 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_dev
             return True
 
         now_time = datetime.now()
-        if(now_time - previous_time).seconds >= conf["env_save_time"]:
-            save_env(env_file, dht_device, conf)
-            previous_time = datetime.now()
-
         if is_between(now_time.hour, conf["detection_times"]):
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and occupied/unoccupied text
@@ -123,5 +128,81 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, dht_dev
 
         else:
             raw_capture.truncate(0)
+
+def detect_and_record(conf, data_file, video_folder, date_string):
+    # initialize the camera and grab a reference to the raw camera capture
+    cam = PiCamera()
+    cam.resolution = tuple(conf["detection_resolution"])
+    cam.framerate = conf["detection_fps"]
+    raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
+    video = conf["video_path"]
+    cam.shutter_speed = 30000
+    
+    # allow the camera to warmup, then initialize the average frame, and frame motion counter
+    print("[INFO] Warming up...")
+    time.sleep(conf["camera_warmup_time"])
+    avg = None
+    motion_counter = 0
+    # start loop
+    while True:
+        ledhandle.LED_ON(conf["on_led_pin"])
+
+        # check if still the same day
+        check_data_time = datetime.now()
+        check_date_string = check_data_time.strftime("%Y%m%d")
+
+        # if it's a different day, make a new folder
+        if check_date_string != date_string:
+            date_string = check_date_string
+            # make directory for day
+            video_folder = video + date_string + "/"
+            dirhandle.make_folder(video_folder)
+
+        # check if motion and if button is pressed
+        will_pause = stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter)
+
+        # if going to pause turn on led and wait for resume press
+        if will_pause:
+            print("[INFO] Paused!")
+            ledhandle.LED_ON(conf["pause_led_pin"])
+            ledhandle.LED_OFF(conf["on_led_pin"])
+            time.sleep(2)
+            GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+            paused = True 
+            while(paused):
+                paused = not GPIO.input(conf["button_pin"])
+            print("[INFO] Continuing...")
+            ledhandle.LED_OFF(conf["pause_led_pin"])
+            ledhandle.LED_ON(conf["on_led_pin"])
+            time.sleep(2)
+
+        # otherwise starts a recording
+        else:
+            # change resolution and framerate for HD
+            print("[INFO] Changing camera resolution and framerate...")
+            cam.resolution = tuple(conf["capture_resolution"])
+            cam.framerate = conf["capture_fps"]
+            video_time = datetime.now()
+            video_name = video_folder + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
+
+
+            ledhandle.LED_ON(conf["record_led_pin"])
+            ledhandle.LED_OFF(conf["on_led_pin"])
+            # record video
+            print("[INFO] Start recording.")
+            cam.start_recording(video_name)
+            cam.wait_recording(conf["upload_seconds"])
+            cam.stop_recording()
+            print("[INFO] Finished recording!")
+            print("[INFO] Returning camera to search values.")
+            
+            ledhandle.LED_OFF(conf["record_led_pin"])
+            ledhandle.LED_ON(conf["on_led_pin"])
+            # return values to originals
+            cam.resolution = tuple(conf["detection_resolution"])
+            cam.framerate = conf["detection_fps"]
+            raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
+            motion_counter = 0
+            avg = None
 
 
