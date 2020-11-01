@@ -58,7 +58,7 @@ try:
 
     # set up data file
     data_string =  data_time.strftime("%Y%m%d_%H%M%S")
-    data_file = open((data_string + "_" +
+    data_file = open((video + data_string + "_" +
         str(conf["min_motion_frames"]) + "_" +
         str(conf["min_area"]) + ".csv"), "w+")
     data_file.write("time,motion_counter,iter,contour\n")

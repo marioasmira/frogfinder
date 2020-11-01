@@ -6,6 +6,7 @@ import time
 import Adafruit_DHT
 import frogutils.ledhandle as ledhandle 
 import frogutils.displayhandle as displayhandle
+import frogutils.dirhandle as dirhandle
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
@@ -134,9 +135,9 @@ def detect_and_record(conf, data_file, video_folder, date_string):
     cam = PiCamera()
     cam.resolution = tuple(conf["detection_resolution"])
     cam.framerate = conf["detection_fps"]
+    cam.shutter_speed = 30000
     raw_capture = PiRGBArray(cam, size=tuple(conf["detection_resolution"]))
     video = conf["video_path"]
-    cam.shutter_speed = 30000
     
     # allow the camera to warmup, then initialize the average frame, and frame motion counter
     print("[INFO] Warming up...")
