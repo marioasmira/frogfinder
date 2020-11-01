@@ -46,7 +46,8 @@ def save_env(env_file, dht_device, conf):
                     ledhandle.LED_OFF(conf["temp_led_pin"])
                 displayhandle.display(conf, int(temperature), int(humidity), conf["env_save_time"])
         else:
-            displayhandle.display(conf, int(temperature), int(humidity), 1)
+            if humidity is not None and temperature is not None:
+                displayhandle.display(conf, int(temperature), int(humidity), 1)
 
 def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
     GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
