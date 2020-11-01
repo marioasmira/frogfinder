@@ -18,13 +18,13 @@ def is_between(time, time_range):
 
 def save_env(env_file, dht_device, conf):
     previous_time = datetime.now()
-
+    humidity, temperature = Adafruit_DHT.read_retry(
+        dht_device, conf["dht_device_pin"])
     while True:
         now_time = datetime.now()
-        if(now_time - previous_time).seconds >= conf["env_save_time"]:
+        second_difference = (now_time - previous_time).total_seconds()
+        if second_difference >= conf["env_save_time"]:
             previous_time = datetime.now()
-
-
             humidity, temperature = Adafruit_DHT.read_retry(dht_device, conf["dht_device_pin"])
             frame_time  = datetime.now()    # each frame can have more than one area
             formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
@@ -44,7 +44,9 @@ def save_env(env_file, dht_device, conf):
                     ledhandle.LED_ON(conf["temp_led_pin"])
                 else:
                     ledhandle.LED_OFF(conf["temp_led_pin"])
-                displayhandle.display(conf, int(temperature), int(humidity))
+                displayhandle.display(conf, int(temperature), int(humidity), conf["env_save_time"])
+        else:
+            displayhandle.display(conf, int(temperature), int(humidity), 1)
 
 def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
     GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)

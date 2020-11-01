@@ -13,7 +13,7 @@ digit_array = [[0,0,0,0,0,0,1],\
         [0,0,0,0,0,0,0],\
         [0,0,0,0,1,0,0]]
 
-def display(conf, val1, val2):
+def display(conf, val1, val2, wait_time):
     # turn the two values into a list
     list1 = [int(x) for x in str(val1)]
     # if there's only one digit add a zero before
@@ -32,7 +32,10 @@ def display(conf, val1, val2):
         GPIO.output(pin,False)
     GPIO.output(conf["display_dot_pin"], True)
 
-    for n in range(1, 1000):
+    # the number 50 comes from 200 / 4
+    # 200 would make the loop run for the same length as the conf file
+    # but since there are 4 digits to display it gets divided by 4 to keep the interval equal to the conf file
+    for n in range(1, (wait_time * 50)):
         for pos in range(0, 4):
             GPIO.output(conf["digit_pins"][pos], True)
             val = digit_list[pos]

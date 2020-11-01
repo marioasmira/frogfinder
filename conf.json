@@ -21,7 +21,7 @@
 	"pause_led_pin": 10,
 	"button_pin": 22,
 	"dht_device_pin": 18,
-	"env_save_time": 5,
+	"env_save_time": 60,
 	"max_hum": 100,
 	"min_hum": 80,
 	"max_temp": 27,
