@@ -43,6 +43,8 @@ try:
     for pin in conf["digit_pins"]:
       GPIO.setup(pin,GPIO.OUT) # setting pins for digit selector
     GPIO.setup(conf["display_dot_pin"],GPIO.OUT) # setting dot pin
+    for pin in conf["dioder_pins"]:
+      GPIO.setup(pin,GPIO.OUT) # setting pins for dioder colors
 
     # define temperature and humidity device
     dht_device = Adafruit_DHT.DHT11
@@ -90,6 +92,8 @@ finally:
     for pin in conf["digit_pins"]:
       GPIO.output(pin, True) # setting pins for digit selector
     GPIO.output(conf["display_dot_pin"], True) # setting dot pin
+    for pin in conf["dioder_pins"]:
+        ledhandle.LED_OFF(pin)
     cam.close()
     data_file.close()
     env_file.close()

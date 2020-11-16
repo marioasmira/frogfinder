@@ -18,7 +18,7 @@
 	"record_led_pin": 3,
 	"temp_led_pin": 27,
 	"hum_led_pin": 23,
-	"pause_led_pin": 10,
+	"pause_led_pin": 15,
 	"button_pin": 22,
 	"dht_device_pin": 18,
 	"env_save_time": 60,
@@ -28,5 +28,6 @@
 	"min_temp": 21,
 	"display_pins": [5,26,16,7,8,6,20],
 	"digit_pins": [9,13,19,21],
-	"display_dot_pin": 12
+	"display_dot_pin": 12,
+	"dioder_pins": [4, 17, 10]
 }

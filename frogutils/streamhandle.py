@@ -44,7 +44,6 @@ def save_env(env_file, dht_device, conf):
                     ledhandle.LED_ON(conf["temp_led_pin"])
                 else:
                     ledhandle.LED_OFF(conf["temp_led_pin"])
-                displayhandle.display(conf, int(temperature), int(humidity), conf["env_save_time"])
         else:
             if humidity is not None and temperature is not None:
                 displayhandle.display(conf, int(temperature), int(humidity), 1)
@@ -57,12 +56,14 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
         button_off = GPIO.input(conf["button_pin"])
         if button_off:
             print("[INFO] Pausing...")
-            time.sleep(2)
+            time.sleep(1)
             raw_capture.truncate(0)
             return True
 
         now_time = datetime.now()
         if is_between(now_time.hour, conf["detection_times"]):
+            for color in conf["dioder_pins"]:
+                ledhandle.LED_ON(color)
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and occupied/unoccupied text
             frame = f.array
@@ -131,6 +132,8 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
             raw_capture.truncate(0)
 
         else:
+            for color in conf["dioder_pins"]:
+                ledhandle.LED_OFF(color)
             raw_capture.truncate(0)
 
 def detect_and_record(conf, data_file, video_folder, date_string):
