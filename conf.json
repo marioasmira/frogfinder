@@ -1,6 +1,6 @@
 {
 	"debug": true, 
-	"video_path": "/home/pi/Videos/",
+	"video_path": "/mnt/storage/frog/",
 	"upload_seconds": 60.0,
 	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
@@ -27,6 +27,6 @@
 	"max_temp": 27,
 	"min_temp": 21,
 	"display_pins": [5,26,16,7,8,6,20],
-	"digit_pins": [11,13,19,21],
+	"digit_pins": [9,13,19,21],
 	"display_dot_pin": 12
 }
