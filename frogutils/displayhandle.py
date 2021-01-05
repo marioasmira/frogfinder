@@ -16,16 +16,16 @@ digit_array = [[0,0,0,0,0,0,1],\
         [0,0,0,0,1,0,0]]
 """
 # second for common anode displays
-digit_array = [[1,1,1,1,1,1,0],\
-        [0,1,1,0,0,0,0],\
-        [1,1,0,1,1,0,1],\
-        [1,1,1,1,0,0,1],\
-        [0,1,1,0,0,1,1],\
-        [1,0,1,1,0,1,1],\
-        [1,0,1,1,1,1,1],\
-        [1,1,1,0,0,0,0],\
-        [1,1,1,1,1,1,1],\
-        [1,1,1,1,0,1,1]]
+digit_array = [[1, 1, 1, 1, 1, 1, 0],
+               [0, 1, 1, 0, 0, 0, 0],
+               [1, 1, 0, 1, 1, 0, 1],
+               [1, 1, 1, 1, 0, 0, 1],
+               [0, 1, 1, 0, 0, 1, 1],
+               [1, 0, 1, 1, 0, 1, 1],
+               [1, 0, 1, 1, 1, 1, 1],
+               [1, 1, 1, 0, 0, 0, 0],
+               [1, 1, 1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 0, 1, 1]]
 
 
 def display(conf, val1, val2, wait_time):
@@ -33,18 +33,18 @@ def display(conf, val1, val2, wait_time):
     list1 = [int(x) for x in str(val1)]
     # if there's only one digit add a zero before
     if len(list1) < 2:
-        list1.insert(0,0)
+        list1.insert(0, 0)
     list2 = [int(x) for x in str(val2)]
     # if there's only one digit add a zero before
     if len(list2) < 2:
-        list2.insert(0,0)
+        list2.insert(0, 0)
     digit_list = list1 + list2
 
     # reset display
     for pin in conf["display_pins"]:
-        GPIO.output(pin,False)
+        GPIO.output(pin, False)
     for pin in conf["digit_pins"]:
-        GPIO.output(pin,True)
+        GPIO.output(pin, True)
     GPIO.output(conf["display_dot_pin"], False)
 
     # the number 50 comes from 200 / 4

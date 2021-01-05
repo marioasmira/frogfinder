@@ -16,11 +16,15 @@ def is_between(time, time_range):
     return time_range[0] <= time <= time_range[1]
 
 
-def save_env(env_file, dht_device, conf):
+def save_env(env_file, dht_device, conf, stop_thread):
     previous_time = datetime.now()
     humidity, temperature = Adafruit_DHT.read_retry(
         dht_device, conf["dht_device_pin"])
     while True:
+        # breaks function if program will close
+        if stop_thread == True:
+            return
+
         now_time = datetime.now()
         second_difference = (now_time - previous_time).total_seconds()
         if second_difference >= conf["env_save_time"]:
@@ -48,11 +52,16 @@ def save_env(env_file, dht_device, conf):
             if humidity is not None and temperature is not None:
                 displayhandle.display(conf, int(temperature), int(humidity), 1)
 
-def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
+def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, stop_thread):
     GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
     #capture frames from the camera
     for f in cam.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+        # breaks function if program will close
+        if stop_thread == True:
+            raw_capture.truncate(0)
+            break
+
         button_off = GPIO.input(conf["button_pin"])
         if button_off:
             print("[INFO] Pausing...")
@@ -62,6 +71,11 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
 
         now_time = datetime.now()
         if is_between(now_time.hour, conf["detection_times"]):
+            # breaks function if program will close
+            if stop_thread == True:
+                raw_capture.truncate(0)
+                break
+
             for color in conf["dioder_pins"]:
                 ledhandle.LED_ON(color)
             # grab the raw NumPy array representing the image and initialize
@@ -136,7 +150,7 @@ def stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter):
                 ledhandle.LED_OFF(color)
             raw_capture.truncate(0)
 
-def detect_and_record(conf, data_file, video_folder, date_string):
+def detect_and_record(conf, data_file, video_folder, date_string, stop_thread):
     # initialize the camera and grab a reference to the raw camera capture
     cam = PiCamera()
     cam.resolution = tuple(conf["detection_resolution"])
@@ -166,7 +180,10 @@ def detect_and_record(conf, data_file, video_folder, date_string):
             dirhandle.make_folder(video_folder)
 
         # check if motion and if button is pressed
-        will_pause = stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter)
+        will_pause = stream_parse(cam, raw_capture, conf, data_file, avg, motion_counter, stop_thread)
+
+        if stop_thread == True:
+            return
 
         # if going to pause turn on led and wait for resume press
         if will_pause:
