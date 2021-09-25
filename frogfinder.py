@@ -8,7 +8,8 @@ from datetime import datetime
 import time
 import sys
 from multiprocessing import Process
-from parameters import Parameters
+from frogutils.parameters import Parameters
+from frogutils.recorder import Recorder
 import RPi.GPIO as GPIO
 
 try:
@@ -41,11 +42,13 @@ try:
     env_file = open((data_string + "_env.csv"), "w+")
     env_file.write("time,temperature,humidity\n")
 
+    recorder = Recorder(pars)
+
     stop_threads = False
     p_env = Process(target=streamhandle.save_env, args=(
         env_file, pars, lambda: stop_threads))
-    p_vid = Process(target=streamhandle.detect_and_record, args=(
-        pars, data_file, video_folder, date_string, lambda: stop_threads))
+    p_vid = Process(target=recorder.detect, args=(
+        pars, data_file, date_string, lambda: stop_threads))
 
     p_vid.start()
     p_env.start()

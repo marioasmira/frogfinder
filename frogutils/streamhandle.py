@@ -6,16 +6,16 @@ import time
 from Adafruit_DHT import DHT11, read_retry
 import frogutils.ledhandle as ledhandle 
 import frogutils.displayhandle as displayhandle
-import frogutils.dirhandle as dirhandle
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from parameters import Parameters
+from frogutils.recorder import is_between, Recorder
 
-def is_between(time, time_range) -> bool:
+""" def is_between(time, time_range) -> bool:
     if time_range[1] < time_range[0]:
         return time >= time_range[0] or time <= time_range[1]
     return time_range[0] <= time <= time_range[1]
-
+ """
 
 def save_env(env_file, pars: Parameters, stop_thread):
     # define temperature and humidity device
@@ -55,7 +55,7 @@ def save_env(env_file, pars: Parameters, stop_thread):
         else:
             if humidity is not None and temperature is not None:
                 displayhandle.display(pars, int(temperature), int(humidity), 1)
-
+""" 
 def stream_parse(cam, raw_capture, pars: Parameters, data_file, avg, motion_counter, stop_thread):
     #GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
@@ -233,4 +233,4 @@ def detect_and_record(pars: Parameters, data_file, video_folder, date_string, st
             motion_counter = 0
             avg = None
 
-
+ """

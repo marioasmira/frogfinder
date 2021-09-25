@@ -1,6 +1,6 @@
 {
 	"debug": true, 
-	"video_path": "~/Code/frogfinder/",
+	"video_path": "~/Code/temp_frogfinder/",
 	"upload_seconds": 60.0,
 	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
@@ -8,7 +8,7 @@
 	"shutter_speed": 30000,
 	"detection_resolution": [640, 480],
 	"detection_fps": 30,
-	"detection_times": [8, 19],
+	"detection_times": [8, 24],
 	"capture_resolution": [1920, 1080],
 	"capture_fps": 30,
 	"detection_range": [400,2500],
