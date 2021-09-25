@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 # import the necessary packages
+from frogutils.environment import Environment
 import frogutils.dirhandle as dirhandle
-import frogutils.streamhandle as streamhandle
+#import frogutils.streamhandle as streamhandle
 import json
 from datetime import datetime
 import time
@@ -10,6 +11,7 @@ import sys
 from multiprocessing import Process
 from frogutils.parameters import Parameters
 from frogutils.recorder import Recorder
+from frogutils.environment import Environment
 import RPi.GPIO as GPIO
 
 try:
@@ -43,9 +45,10 @@ try:
     env_file.write("time,temperature,humidity\n")
 
     recorder = Recorder(pars)
+    environment = Environment(pars)
 
     stop_threads = False
-    p_env = Process(target=streamhandle.save_env, args=(
+    p_env = Process(target=environment.loop, args=(
         env_file, pars, lambda: stop_threads))
     p_vid = Process(target=recorder.detect, args=(
         pars, data_file, date_string, lambda: stop_threads))

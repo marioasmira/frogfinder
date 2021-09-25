@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import ctypes
 
 # each list displays one digit from 0-9
 # firs for common cathode displays
@@ -28,29 +29,35 @@ digit_array = [[1, 1, 1, 1, 1, 1, 0],
                [1, 1, 1, 1, 0, 1, 1]]
 
 
-def display(pars, val1, val2, wait_time):
-    # turn the two values into a list
-    list1 = [int(x) for x in str(val1)]
-    # if there's only one digit add a zero before
-    if len(list1) < 2:
-        list1.insert(0, 0)
-    list2 = [int(x) for x in str(val2)]
-    # if there's only one digit add a zero before
-    if len(list2) < 2:
-        list2.insert(0, 0)
-    digit_list = list1 + list2
+def display(pars, val1, val2, stop_thread):
+    while True:
+        if stop_thread is True:
+            return
+            
+        # turn the two values into a list
+        list1 = [int(x) for x in str(val1)]
+        # if there's only one digit add a zero before
+        if len(list1) < 2:
+            list1.insert(0, 0)
 
-    # reset display
-    for pin in pars.get_pin("display_pins"):
-        GPIO.output(pin, False)
-    for pin in pars.get_pin("digit_pins"):
-        GPIO.output(pin, True)
-    GPIO.output(pars.get_pin("display_dot_pin"), False)
+        list2 = [int(x) for x in str(val2)]
+        # if there's only one digit add a zero before
+        if len(list2) < 2:
+            list2.insert(0, 0)
+        digit_list = list1 + list2
 
-    # the number 50 comes from 200 / 4
-    # 200 would make the loop run for the same length as the conf file
-    # but since there are 4 digits to display it gets divided by 4 to keep the interval equal to the conf file
-    for n in range(1, (wait_time * 50)):
+        # reset display
+        for pin in pars.get_pin("display_pins"):
+            GPIO.output(pin, False)
+        for pin in pars.get_pin("digit_pins"):
+            GPIO.output(pin, True)
+        GPIO.output(pars.get_pin("display_dot_pin"), False)
+
+        # the number 50 comes from 200 / 4
+        # 200 would make the loop run for the same length as the conf file
+        # but since there are 4 digits to display it gets divided by 4 to keep the interval equal to the conf file
+        #for n in range(1, (wait_time * 50)):
+        
         for pos in range(0, 4):
             GPIO.output(pars.get_pin("digit_pins")[pos], False)
             val = digit_list[pos]
