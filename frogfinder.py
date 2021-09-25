@@ -4,49 +4,24 @@
 import frogutils.dirhandle as dirhandle
 import frogutils.ledhandle as ledhandle
 import frogutils.streamhandle as streamhandle
-import argparse
-import warnings
-import json
+from json import json
 from datetime import datetime
 import time
 import sys
-import os
-import RPi.GPIO as GPIO
 import Adafruit_DHT
 from multiprocessing import Process
+from parameters import Parameters
 
 try:
-    # construct the argument parser and parse the arguments
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-c", "--conf", required=True,
-                    help="path to the JSON configuration file")
-    args = vars(ap.parse_args())
+    try:
+        conf = json.load(open("configuration.json"))
+    except OSError:
+        print("Couldn't open the conf.json file. Mkae sure it's in the same directory.")
 
-    # filter warnings
-    if not sys.warnoptions:
-        warnings.filterwarnings("ignore")
+    pars = Parameters(config=conf)
+    del conf
 
-    # import configuration options
-    conf = json.load(open(args["conf"]))
-
-    # define pins and GPIO setup
-    GPIO.setmode(GPIO.BCM)
-
-    # inside a try-finally to make sure the pins are cleaned up in case of wrong pins
-    GPIO.setup(conf["on_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["record_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["temp_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["hum_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["pause_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(conf["dht_device_pin"], GPIO.IN)
-    for pin in conf["display_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for segments
-    for pin in conf["digit_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for digit selector
-    GPIO.setup(conf["display_dot_pin"], GPIO.OUT)  # setting dot pin
-    for pin in conf["dioder_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for dioder colors
+    pars.setup_GPIO()
 
     # define temperature and humidity device
     dht_device = Adafruit_DHT.DHT11
