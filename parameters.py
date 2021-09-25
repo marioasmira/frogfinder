@@ -1,11 +1,12 @@
-#import json
+import json
 import RPi.GPIO as GPIO
+from frogutils.ledhandle import LED_OFF, LED_ON
 
 class Parameters:
     values = {}
     pins = {}
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: json) -> None:
 
         self.values["debug"] = config["debug"]
 
@@ -60,9 +61,35 @@ class Parameters:
                     for pin in pins:
                         GPIO.setup(pin, GPIO.OUT)
 
-    def get_pin(self, str):
-        return self.pins[str]
+    def cleanup_pins(self) -> None:
+        for k in self.pins.keys():
+            if(k == "button_pin"):
+                continue
+            elif(k == "pause_led_pin"):
+                continue
+            elif(k == "dht_device_pin"):
+                continue
+            elif(k == "display_pins"):
+                pins = self.pins[k]
+                for pin in pins:
+                    LED_ON(pin)
+            elif(k == "digit_pins"):
+                pins = self.pins[k]
+                for pin in pins:
+                    LED_ON(pin)
+            elif(k == "display_dot_pin"):
+                LED_ON(self.pins[k])
+            else:
+                pins = self.pins[k]
+                if(isinstance(pins, int)):
+                    LED_OFF(pins)
+                else:
+                    for pin in pins:
+                        LED_OFF(pin)
 
-    def get_value(self, str):
-        return self.values[str]
+    def get_pin(self, string: str):
+        return self.pins[string]
+
+    def get_value(self, string: str):
+        return self.values[string]
 

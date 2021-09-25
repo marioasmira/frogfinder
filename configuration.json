@@ -1,6 +1,6 @@
 {
 	"debug": true, 
-	"video_path": "/mnt/storage/frog/",
+	"video_path": "~/Code/frogfinder/",
 	"upload_seconds": 60.0,
 	"min_motion_frames": 3,
 	"camera_warmup_time": 2.0,
