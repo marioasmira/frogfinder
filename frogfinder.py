@@ -7,11 +7,12 @@ import json
 from datetime import datetime
 from time import sleep
 from sys import exit
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Queue
 from frogutils.parameters import Parameters
 from frogutils.recorder import Recorder
 from frogutils.environment import Environment
 from frogutils.display import Display
+from frogutils.pinhandle import PinHandle
 from RPi.GPIO import setwarnings, cleanup
 
 class Frogfinder:
@@ -44,23 +45,29 @@ class Frogfinder:
         self.recorder = Recorder(self.pars)
         self.environment = Environment(self.pars)
         self.display = Display()
+        self.pinhandler = PinHandle()
         self.env_pipe, self.disp_pipe = Pipe()
+        self.led_queue = Queue()
 
     def run(self):
 
         p_env = Process(target=self.environment.loop, args=(
-            self.pars, self.env_file, self.env_pipe
+            self.pars, self.env_file, self.env_pipe, self.led_queue
         ))
         p_disp = Process(target=self.display.digits, args=(
             self.pars, self.disp_pipe
         ))
         p_vid = Process(target=self.recorder.detect, args=(
-            self.pars, self.data_file
+            self.pars, self.data_file, self.led_queue
+        ))
+        p_led = Process(target=self.pinhandler.run, args=(
+            self.pars, self.led_queue
         ))
 
         p_vid.start()
         p_env.start()
         p_disp.start()
+        p_led.start()
 
         while True:
             key_press = input("Write 'quit' to exit the program.\n")
@@ -72,9 +79,11 @@ class Frogfinder:
         p_disp.terminate()
         p_env.terminate()
         p_vid.terminate()
+        p_led.terminate()
         p_disp.join()
         p_env.join()
         p_vid.join()
+        p_led.join()
 
     def cleanup(self):
         print("[INFO] Exiting program...")

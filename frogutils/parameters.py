@@ -1,6 +1,6 @@
 import json
 import RPi.GPIO as GPIO
-from frogutils.ledhandle import LED_OFF, LED_ON
+from frogutils.pinhandle import PIN_OFF, PIN_ON
 
 class Parameters:
     values = {}
@@ -24,6 +24,7 @@ class Parameters:
         self.values["capture_fps"] = config["capture_fps"]
         self.values["detection_range"] = config["detection_range"]
         self.values["max_areas"] = config["max_areas"]
+        self.values["heating_minimum"] = config["heating_minimum"]
 
         # environment values
         self.values["env_save_time"] = config["env_save_time"]
@@ -31,17 +32,27 @@ class Parameters:
         self.values["temperature_interval"] = config["temperature_interval"]
 
         # add pins to dictionary
+        # status pins
         self.pins["on_led_pin"] = config["on_led_pin"]
         self.pins["record_led_pin"] = config["record_led_pin"]
         self.pins["temp_led_pin"] = config["temp_led_pin"]
         self.pins["hum_led_pin"] = config["hum_led_pin"]
         self.pins["pause_led_pin"] = config["pause_led_pin"]
-        self.pins["button_pin"] = config["button_pin"]
+
+        # environment monitoring pins
         self.pins["dht_device_pin"] = config["dht_device_pin"]
+        self.pins["heating_pin"] = config["heating_pin"]
+
+        # video tracking pins
+        self.pins["button_pin"] = config["button_pin"]
+
+        # display pins
         self.pins["display_pins"] = config["display_pins"]
         self.pins["digit_pins"] = config["digit_pins"]
         self.pins["display_dot_pin"] = config["display_dot_pin"]
-        self.pins["dioder_pins"] = config["dioder_pins"]
+
+        # currently unused pins
+        self.pins["remaining_pins"] = config["remaining_pins"]
         
 
     def setup_GPIO(self) -> None:
@@ -72,20 +83,20 @@ class Parameters:
             elif(k == "display_pins"):
                 pins = self.pins[k]
                 for pin in pins:
-                    LED_ON(pin)
+                    PIN_ON(pin)
             elif(k == "digit_pins"):
                 pins = self.pins[k]
                 for pin in pins:
-                    LED_ON(pin)
+                    PIN_ON(pin)
             elif(k == "display_dot_pin"):
-                LED_ON(self.pins[k])
+                PIN_ON(self.pins[k])
             else:
                 pins = self.pins[k]
                 if(isinstance(pins, int)):
-                    LED_OFF(pins)
+                    PIN_OFF(pins)
                 else:
                     for pin in pins:
-                        LED_OFF(pin)
+                        PIN_OFF(pin)
 
     def get_pin(self, string: str):
         return self.pins[string]

@@ -5,7 +5,6 @@ import RPi.GPIO as GPIO
 from parameters import Parameters
 from time import sleep
 from datetime import datetime
-from frogutils.ledhandle import LED_OFF, LED_ON 
 from frogutils.dirhandle import make_folder
 import imutils
 import cv2
@@ -18,7 +17,6 @@ def is_between(time, time_range) -> bool:
 class Recorder:
     motion_counter = 0
     avg = None
-    camera: PiCamera
     video_path: str
     video_folder: str
 
@@ -27,7 +25,7 @@ class Recorder:
         self.video_path = pars.get_value("video_path")
         self.video_folder = self.video_path + datetime.now().strftime("%Y%m%d") + "/"
 
-    def detect(self, pars: Parameters, data_file):
+    def detect(self, pars: Parameters, data_file, led_queue):
         camera = PiCamera()
         camera.resolution = tuple(pars.get_value("detection_resolution"))
         camera.framerate = pars.get_value("detection_fps")
@@ -41,7 +39,7 @@ class Recorder:
 
         # start loop
         while True:
-            LED_ON(pars.get_pin("on_led_pin"))
+            led_queue.put(["on_led_pin", True])
 
             # check if still the same day
             check_data_time = datetime.now()
@@ -61,8 +59,8 @@ class Recorder:
             if will_pause:
                 current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
                 print("[INFO] " + current_time + " Paused!")
-                LED_ON(pars.get_pin("pause_led_pin"))
-                LED_OFF(pars.get_pin("on_led_pin"))
+                led_queue.put(["pause_led_pin", True])
+                led_queue.put(["on_led_pin", False])
                 sleep(2)
                 GPIO.setup(pars.get_pin("button_pin"), GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
                 paused = True 
@@ -70,13 +68,13 @@ class Recorder:
                     paused = not GPIO.input(pars.get_pin("button_pin"))
                 current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
                 print("[INFO] " + current_time + " Continuing...")
-                LED_OFF(pars.get_pin("pause_led_pin"))
-                LED_ON(pars.get_pin("on_led_pin"))
+                led_queue.put(["pause_led_pin", False])
+                led_queue.put(["on_led_pin", True])
                 sleep(2)
 
             # otherwise starts a recording
             else:
-                self.record(camera, pars)
+                self.record(camera, pars, led_queue)
                 
     def stream_parse(self, camera, pars: Parameters, data_file):
         GPIO.setup(pars.get_pin("button_pin"), GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
@@ -99,8 +97,6 @@ class Recorder:
 
             now_time = datetime.now()
             if is_between(now_time.hour, pars.get_value("detection_times")):
-                for color in pars.get_pin("dioder_pins"):
-                    LED_ON(color)
                 # grab the raw NumPy array representing the image and initialize
                 # the timestamp and occupied/unoccupied text
                 frame = f.array
@@ -171,12 +167,10 @@ class Recorder:
                 raw_capture.truncate(0)
 
             else:
-                for color in pars.get_pin("dioder_pins"):
-                    LED_OFF(color)
                 raw_capture.truncate(0)
                 sleep(60)
 
-    def record(self, camera, pars: Parameters):
+    def record(self, camera, pars: Parameters, led_queue):
         # change resolution and framerate for HD
         current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
         print("[INFO] " + current_time + " Changing camera resolution and framerate...")
@@ -186,8 +180,8 @@ class Recorder:
         video_name = self.video_folder + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
 
 
-        LED_ON(pars.get_pin("record_led_pin"))
-        LED_OFF(pars.get_pin("on_led_pin"))
+        led_queue.put(["record_led_pin", True])
+        led_queue.put(["on_led_pin", False])
         # record video
         current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
         print("[INFO] " + current_time + " Start recording.")
@@ -198,6 +192,6 @@ class Recorder:
         print("[INFO] " + current_time + " Finished recording!")
         print("[INFO] " + current_time + " Returning camera to search values.")
         
-        LED_OFF(pars.get_pin("record_led_pin"))
-        LED_ON(pars.get_pin("on_led_pin"))
+        led_queue.put(["record_led_pin", False])
+        led_queue.put(["on_led_pin", True])
 
