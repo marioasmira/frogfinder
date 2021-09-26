@@ -76,7 +76,7 @@ class Recorder:
 
             # otherwise starts a recording
             else:
-                self.record(camera)
+                self.record(camera, pars)
                 
     def stream_parse(self, camera, pars: Parameters, data_file):
         GPIO.setup(pars.get_pin("button_pin"), GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
@@ -141,12 +141,12 @@ class Recorder:
                 #if len(cnts) < conf["max_areas"]:
                 for c in cnts:
                     data_file.write(formated_frame_time + "," +
-                            str(motion_counter) + "," +
+                            str(self.motion_counter) + "," +
                             str(counter) + "," +
                             str(cv2.contourArea(c)) + "\n")
                     if pars.get_value("debug"):
                             print(formated_frame_time + "    " +
-                                str(motion_counter) + "    " +
+                                str(self.motion_counter) + "    " +
                                 str(counter) + "    " +
                                 str(cv2.contourArea(c)))
                     # if the contour is too small, ignore it
@@ -158,14 +158,14 @@ class Recorder:
                         continue
 
                 if presence:
-                    motion_counter += 1
+                    self.motion_counter += 1
                     # check to see if the number of frames with consistent motion is high enough
-                    if (motion_counter >= pars.get_value("min_motion_frames")):
+                    if (self.motion_counter >= pars.get_value("min_motion_frames")):
                         current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
                         print("[INFO] " + current_time + " Got one!")
                         return False
                 else:
-                    motion_counter = 0
+                    self.motion_counter = 0
 
                 # clear the stream in preparation for the next frame
                 raw_capture.truncate(0)
