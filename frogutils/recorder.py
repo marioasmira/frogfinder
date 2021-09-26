@@ -27,13 +27,14 @@ class Recorder:
         self.video_path = pars.get_value("video_path")
         self.video_folder = self.video_path + datetime.now().strftime("%Y%m%d") + "/"
 
-    def detect(self, pars: Parameters, data_file, date_string,  stop_thread):
+    def detect(self, pars: Parameters, data_file):
         camera = PiCamera()
         camera.resolution = tuple(pars.get_value("detection_resolution"))
         camera.framerate = pars.get_value("detection_fps")
         camera.shutter_speed = pars.get_value("shutter_speed")
 
         # allow the camera to warmup, then initialize the average frame, and frame motion counter
+        date_string = datetime.now().strftime("%Y%m%d")
         current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
         print("[INFO] " + current_time + " Warming up...")
         sleep(pars.get_value("camera_warmup_time"))
@@ -54,10 +55,7 @@ class Recorder:
                 make_folder(self.video_folder)
 
             # check if motion and if button is pressed
-            will_pause = self.stream_parse(camera, pars, data_file, stop_thread)
-
-            if stop_thread == True:
-                return
+            will_pause = self.stream_parse(camera, pars, data_file)
 
             # if going to pause turn on led and wait for resume press
             if will_pause:
@@ -80,7 +78,7 @@ class Recorder:
             else:
                 self.record(camera)
                 
-    def stream_parse(self, camera, pars: Parameters, data_file, stop_thread):
+    def stream_parse(self, camera, pars: Parameters, data_file):
         GPIO.setup(pars.get_pin("button_pin"), GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
         # return values to originals
         camera.resolution = tuple(pars.get_value("detection_resolution"))
@@ -91,11 +89,6 @@ class Recorder:
 
         #capture frames from the camera
         for f in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
-            # breaks function if program will close
-            if stop_thread == True:
-                raw_capture.truncate(0)
-                break
-
             button_off = GPIO.input(pars.get_pin("button_pin"))
             if button_off:
                 current_time = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
@@ -106,11 +99,6 @@ class Recorder:
 
             now_time = datetime.now()
             if is_between(now_time.hour, pars.get_value("detection_times")):
-                # breaks function if program will close
-                if stop_thread == True:
-                    raw_capture.truncate(0)
-                    break
-
                 for color in pars.get_pin("dioder_pins"):
                     LED_ON(color)
                 # grab the raw NumPy array representing the image and initialize
@@ -186,6 +174,7 @@ class Recorder:
                 for color in pars.get_pin("dioder_pins"):
                     LED_OFF(color)
                 raw_capture.truncate(0)
+                sleep(60)
 
     def record(self, camera, pars: Parameters):
         # change resolution and framerate for HD

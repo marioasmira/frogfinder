@@ -2,10 +2,9 @@ from frogutils.parameters import Parameters
 from Adafruit_DHT import DHT11, read_retry
 from datetime import datetime
 from parameters import Parameters
-from frogutils.displayhandle import display
 from frogutils.ledhandle import LED_OFF, LED_ON 
 from frogutils.recorder import is_between
-from multiprocessing import Process
+from time import sleep
 
 class Environment:
     def __init__(self, pars: Parameters) -> None:
@@ -16,14 +15,12 @@ class Environment:
         self.humidity, self.temperature = read_retry(
             self.dht_device, pars.get_pin("dht_device_pin"))
 
-    def loop(self, env_file, pars: Parameters, stop_thread):
-        # used to only launch the display instance once
-        first_launch = True
+    def loop(self, pars: Parameters, env_file, env_pipe):
+        env_pipe.send([int(self.temperature), int(self.humidity)])
 
         while True:
             now_time = datetime.now()
             second_difference = (now_time - self.previous_time).total_seconds()
-
             if second_difference >= pars.get_value("env_save_time"):
                 self.previous_time = datetime.now()
                 self.humidity, self.temperature = read_retry(self.dht_device, pars.get_pin("dht_device_pin"))
@@ -37,7 +34,7 @@ class Environment:
                     if pars.get_value("debug"):
                         print(formated_frame_time + ", " +
                             "{0:0.0f}".format(self.temperature) + "C, " +
-                            "{0:0.0f}".format(self.humidity) + "%")
+                            "{0:0.0f}".format(self.humidity) + "%")                        
                     if(not is_between(self.humidity, pars.get_value("humidity_interval"))):
                         LED_ON(pars.get_pin("hum_led_pin"))
                     else:
@@ -46,20 +43,10 @@ class Environment:
                         LED_ON(pars.get_pin("temp_led_pin"))
                     else:
                         LED_OFF(pars.get_pin("temp_led_pin"))
-            #else:
-            if (self.humidity is not None and self.temperature is not None) and (first_launch):
-                print("test")
-                first_launch = False
-                print(first_launch)
-                p_display = Process(target=display, args=(
-                    pars, int(self.temperature), int(self.humidity), lambda: stop_thread))
-                #display(pars, int(self.temperature), int(self.humidity), 1)
-                p_display.start()
-            
-            # breaks function if program will close
-            if stop_thread is True:
-                print(stop_thread)
-                p_display.terminate()
-                p_display.join()
-                return
+                    env_pipe.send([int(self.temperature), int(self.humidity)])
+
+            sleep(1)
+
+
+
                     
