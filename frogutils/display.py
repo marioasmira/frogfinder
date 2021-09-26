@@ -1,48 +1,51 @@
 import RPi.GPIO as GPIO
 import time
+from frogutils.parameters import Parameters
+from multiprocessing import Pipe
 
-# each list displays one digit from 0-9
-# first for common cathode displays
-"""
-digit_array = [[0,0,0,0,0,0,1],\
-        [1,0,0,1,1,1,1],\
-        [0,0,1,0,0,1,0],\
-        [0,0,0,0,1,1,0],\
-        [1,0,0,1,1,0,0],\
-        [0,1,0,0,1,0,0],\
-        [0,1,0,0,0,0,0],\
-        [0,0,0,1,1,1,1],\
-        [0,0,0,0,0,0,0],\
-        [0,0,0,0,1,0,0]]
-"""
-# second for common anode displays
-""" digit_array = [[1, 1, 1, 1, 1, 1, 0],
-               [0, 1, 1, 0, 0, 0, 0],
-               [1, 1, 0, 1, 1, 0, 1],
-               [1, 1, 1, 1, 0, 0, 1],
-               [0, 1, 1, 0, 0, 1, 1],
-               [1, 0, 1, 1, 0, 1, 1],
-               [1, 0, 1, 1, 1, 1, 1],
-               [1, 1, 1, 0, 0, 0, 0],
-               [1, 1, 1, 1, 1, 1, 1],
-               [1, 1, 1, 1, 0, 1, 1]] """
 
-class Display():
-    digit_array = [[1, 1, 1, 1, 1, 1, 0],
-                [0, 1, 1, 0, 0, 0, 0],
-                [1, 1, 0, 1, 1, 0, 1],
-                [1, 1, 1, 1, 0, 0, 1],
-                [0, 1, 1, 0, 0, 1, 1],
-                [1, 0, 1, 1, 0, 1, 1],
-                [1, 0, 1, 1, 1, 1, 1],
-                [1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 0, 1, 1]]
-    
+class Display:
+    """Class to control the 4 digit 7 segment display
+
+    Attributes
+    ----------
+    digit_array : 2 dimentional array of int
+        10x7 array that holds the pattern to display each digit with 7 segments.
+
+    Methods
+    -------
+    digits(pars, pipe)
+        Reads output from the pipe and displays the information on the display.
+
+    """
+
+    digit_array = [
+        [1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 0, 0, 0, 0],
+        [1, 1, 0, 1, 1, 0, 1],
+        [1, 1, 1, 1, 0, 0, 1],
+        [0, 1, 1, 0, 0, 1, 1],
+        [1, 0, 1, 1, 0, 1, 1],
+        [1, 0, 1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 0, 1, 1],
+    ]
+
     def __init__(self) -> None:
         pass
 
-    def digits(self, pars, pipe):
+    def digits(self, pars: Parameters, pipe: Pipe) -> None:
+        """Reads output from the pipe and displays the information on the display
+
+        Parameters
+        ----------
+        pars : Parameter
+            The parameter object from which to get GPIO pin information.
+        pipe : Pipe
+            The pipe from which to receive the information to display.
+
+        """
 
         # reset display
         for pin in pars.get_pin("display_pins"):
@@ -50,9 +53,14 @@ class Display():
         for pin in pars.get_pin("digit_pins"):
             GPIO.output(pin, True)
         GPIO.output(pars.get_pin("display_dot_pin"), False)
+        # default values, shouldn't be needed
         digit_list = [2, 0, 7, 0]
+
         while True:
-            if(pipe.poll()):
+            # make sure there is something in the pipe
+            # otherwise, continue showing the same
+            if pipe.poll():
+                # retrieve the two values from the pipe
                 val1, val2 = pipe.recv()
 
                 # turn the two values into a list
@@ -67,16 +75,16 @@ class Display():
                     list2.insert(0, 0)
                 digit_list = list1 + list2
 
-
-            # the number 50 comes from 200 / 4
-            # 200 would make the loop run for the same length as the conf file
-            # but since there are 4 digits to display it gets divided by 4 to keep the interval equal to the conf file
+            # stay on for 100 * 0.005 = 0.5 seconds
             for n in range(101):
                 for pos in range(4):
                     GPIO.output(pars.get_pin("digit_pins")[pos], False)
                     val = digit_list[pos]
 
                     for led in range(0, 7):
-                        GPIO.output(pars.get_pin("display_pins")[led], self.digit_array[val][led])
+                        GPIO.output(
+                            pars.get_pin("display_pins")[led],
+                            self.digit_array[val][led],
+                        )
                     time.sleep(0.005)
                     GPIO.output(pars.get_pin("digit_pins")[pos], True)

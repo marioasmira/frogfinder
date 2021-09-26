@@ -27,6 +27,6 @@
 	"digit_pins": [9,13,19,21],
 	"display_dot_pin": 12,
 	"heating_pin": [4],
-	"heating_minimum": 26,
+	"heating_minimum": 23,
 	"remaining_pins": [17, 10]
 }
