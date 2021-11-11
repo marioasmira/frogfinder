@@ -22,3 +22,11 @@ def make_folder(directory: str) -> None:
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+
+
+def main():
+    make_folder("test")
+
+
+if __name__ == "__main__":
+    main()

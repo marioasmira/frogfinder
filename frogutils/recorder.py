@@ -102,7 +102,7 @@ class Recorder:
         camera.framerate = pars.get_value("capture_fps")
         video_time = datetime.now()
         video_name = self.video_folder + video_time.strftime("%Y%m%d_%H%M%S") + ".h264"
-
+        print(video_name)
         led_queue.put(["record_led_pin", True])
         led_queue.put(["on_led_pin", False])
         # record video

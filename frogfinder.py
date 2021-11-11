@@ -33,6 +33,7 @@ class Frogfinder:
         video_folder = (
             self.pars.get_value("video_path") + datetime.now().strftime("%Y%m%d") + "/"
         )
+        print(video_folder)
         make_folder(video_folder)
 
         # set up data file
