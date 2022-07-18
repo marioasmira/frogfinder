@@ -184,6 +184,25 @@ class Recorder:
                 counter = 0  # to print how many areas were picked up as motion
                 frame_time = datetime.now()  # each frame can have more than one area
                 formated_frame_time = frame_time.strftime("%Y/%m/%d_%H:%M:%S.%f")
+
+                if pars.get_value("debug"):
+                    smallformated_frame_time = frame_time.strftime("%H:%M:%S%f")
+
+                    if len(cnts) > 0:
+                        ##### trying to save contours to a file
+                        #create an empty image for contours
+                        img_contours = frame
+                        # draw the contours on the empty image
+                        cv2.drawContours(img_contours, cnts, -1, (0,255,0), 3)
+                        #save image
+                        cv2.imwrite('test_images/'+ smallformated_frame_time + str(counter) + 'col.jpg', img_contours)
+                        #create an empty image for contours
+                        img_contours = gray
+                        # draw the contours on the empty image
+                        cv2.drawContours(img_contours, cnts, -1, (0,255,0), 3)
+                        #save image
+                        cv2.imwrite('test_images/'+ smallformated_frame_time + str(counter) + 'gray.jpg', img_contours)
+
                 # if len(cnts) < conf["max_areas"]:
                 for c in cnts:
                     data_file.write(
