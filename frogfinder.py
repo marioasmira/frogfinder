@@ -1,113 +1,119 @@
 #!/usr/bin/env python3
 
 # import the necessary packages
-import frogutils.dirhandle as dirhandle
-import frogutils.ledhandle as ledhandle
-import frogutils.streamhandle as streamhandle
-import argparse
-import warnings
 import json
 from datetime import datetime
-import time
-import sys
-import os
-import RPi.GPIO as GPIO
-import Adafruit_DHT
-from multiprocessing import Process
+from time import sleep
+from sys import exit
+from multiprocessing import Process, Pipe, Queue
+from frogutils.environment import Environment
+from frogutils.dirhandle import make_folder
+from frogutils.parameters import Parameters
+from frogutils.recorder import Recorder
+from frogutils.display import Display
+from frogutils.pinhandle import PinHandle
+from RPi.GPIO import setwarnings, cleanup
 
-try:
-    # construct the argument parser and parse the arguments
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-c", "--conf", required=True,
-                    help="path to the JSON configuration file")
-    args = vars(ap.parse_args())
 
-    # filter warnings
-    if not sys.warnoptions:
-        warnings.filterwarnings("ignore")
+class Frogfinder:
+    def __init__(self) -> None:
+        try:
+            config = json.load(open("configuration.json"))
+        except OSError:
+            print(
+                "Couldn't open the conf.json file. Mkae sure it's in the same directory."
+            )
 
-    # import configuration options
-    conf = json.load(open(args["conf"]))
+        self.pars = Parameters(config)
+        del config
+        setwarnings(False)
+        self.pars.setup_GPIO()
 
-    # define pins and GPIO setup
-    GPIO.setmode(GPIO.BCM)
+        # make directory for day
+        video_folder = (
+            self.pars.get_value("video_path") + datetime.now().strftime("%Y%m%d") + "/"
+        )
+        print(video_folder)
+        make_folder(video_folder)
 
-    # inside a try-finally to make sure the pins are cleaned up in case of wrong pins
-    GPIO.setup(conf["on_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["record_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["temp_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["hum_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["pause_led_pin"], GPIO.OUT)
-    GPIO.setup(conf["button_pin"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(conf["dht_device_pin"], GPIO.IN)
-    for pin in conf["display_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for segments
-    for pin in conf["digit_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for digit selector
-    GPIO.setup(conf["display_dot_pin"], GPIO.OUT)  # setting dot pin
-    for pin in conf["dioder_pins"]:
-        GPIO.setup(pin, GPIO.OUT)  # setting pins for dioder colors
+        # set up data file
+        data_string = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.data_file = open(
+            (
+                self.pars.get_value("video_path")
+                + data_string
+                + "_"
+                + str(self.pars.get_value("min_motion_frames"))
+                + "_"
+                + str(self.pars.get_value("detection_range")[1])
+                + ".csv"
+            ),
+            "w+",
+        )
+        self.data_file.write("time,motion_counter,iter,contour\n")
 
-    # define temperature and humidity device
-    dht_device = Adafruit_DHT.DHT11
+        self.env_file = open((data_string + "_env.csv"), "w+")
+        self.env_file.write("time,temperature,humidity\n")
 
-    # get date
-    data_time = datetime.now()
-    date_string = data_time.strftime("%Y%m%d")
+        self.recorder = Recorder(self.pars)
+        self.environment = Environment(self.pars)
+        self.display = Display()
+        self.pinhandler = PinHandle()
+        self.env_pipe, self.disp_pipe = Pipe()
+        self.led_queue = Queue()
 
-    # make directory for day
-    video = conf["video_path"]
-    video_folder = video + date_string + "/"
-    dirhandle.make_folder(video_folder)
+    def run(self):
 
-    # set up data file
-    data_string = data_time.strftime("%Y%m%d_%H%M%S")
-    data_file = open((video + data_string + "_" +
-                      str(conf["min_motion_frames"]) + "_" +
-                      str(conf["min_area"]) + ".csv"), "w+")
-    data_file.write("time,motion_counter,iter,contour\n")
+        p_env = Process(
+            target=self.environment.loop,
+            args=(self.pars, self.env_file, self.env_pipe, self.led_queue),
+        )
+        p_disp = Process(target=self.display.digits, args=(self.pars, self.disp_pipe))
+        p_vid = Process(
+            target=self.recorder.detect,
+            args=(self.pars, self.data_file, self.led_queue),
+        )
+        p_led = Process(target=self.pinhandler.run, args=(self.pars, self.led_queue))
 
-    env_file = open((data_string + "_env.csv"), "w+")
-    env_file.write("time,temperature,humidity\n")
+        p_vid.start()
+        p_env.start()
+        p_disp.start()
+        p_led.start()
 
-    stop_threads = False
-    p_env = Process(target=streamhandle.save_env, args=(
-        env_file, dht_device, conf, lambda: stop_threads))
-    p_vid = Process(target=streamhandle.detect_and_record, args=(
-        conf, data_file, video_folder, date_string, lambda: stop_threads))
+        while True:
+            key_press = input("Write 'quit' to exit the program.\n")
+            if key_press == "quit":
+                break
+            else:
+                sleep(0.05)
 
-    p_vid.start()
-    p_env.start()
+        p_disp.terminate()
+        p_env.terminate()
+        p_vid.terminate()
+        p_led.terminate()
+        p_disp.join()
+        p_env.join()
+        p_vid.join()
+        p_led.join()
 
-    while True:
-      key_press = input("Write 'quit' to exit the program.\n")
-      if key_press == "quit":
-        stop_threads = True
-        break
-      else:
-        time.sleep(0.05)
-        
-    p_env.terminate()
-    p_vid.terminate()
-    p_env.join()
-    p_vid.join()
+    def cleanup(self):
+        print("[INFO] Exiting program...")
+        self.pars.cleanup_pins()
+        self.data_file.close()
+        self.env_file.close()
+        cleanup()
+        print("[INFO] Done.")
+        exit(0)
 
-finally:
-    print("[INFO] Exiting program...")
-    ledhandle.LED_OFF(conf["on_led_pin"])
-    ledhandle.LED_OFF(conf["record_led_pin"])
-    ledhandle.LED_OFF(conf["temp_led_pin"])
-    ledhandle.LED_OFF(conf["hum_led_pin"])
-    ledhandle.LED_OFF(conf["pause_led_pin"])
-    for pin in conf["display_pins"]:
-        GPIO.output(pin, True)  # setting pins for segments
-    for pin in conf["digit_pins"]:
-        GPIO.output(pin, True)  # setting pins for digit selector
-    GPIO.output(conf["display_dot_pin"], True)  # setting dot pin
-    for pin in conf["dioder_pins"]:
-        ledhandle.LED_OFF(pin)
-    data_file.close()
-    env_file.close()
-    GPIO.cleanup()
-    print("[INFO] Done.")
-    sys.exit(0)
+
+def main():
+    try:
+        finder = Frogfinder()
+        finder.run()
+
+    finally:
+        finder.cleanup()
+
+
+if __name__ == "__main__":
+    main()
