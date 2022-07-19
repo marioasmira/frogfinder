@@ -57,7 +57,6 @@ class Parameters:
         self.values["capture_resolution"] = config["capture_resolution"]
         self.values["capture_fps"] = config["capture_fps"]
         self.values["detection_range"] = config["detection_range"]
-        self.values["max_areas"] = config["max_areas"]
         self.values["heating_minimum"] = config["heating_minimum"]
 
         # environment values

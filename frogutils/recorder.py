@@ -203,7 +203,6 @@ class Recorder:
                         #save image
                         cv2.imwrite('test_images/'+ smallformated_frame_time + str(counter) + 'gray.jpg', img_contours)
 
-                # if len(cnts) < conf["max_areas"]:
                 for c in cnts:
                     data_file.write(
                         formated_frame_time

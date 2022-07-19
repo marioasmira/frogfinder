@@ -12,7 +12,6 @@
     "capture_resolution": [1920, 1080],
     "capture_fps": 30,
     "detection_range": [1300, 5000],
-    "max_areas": 10,
     "on_led_pin": 2,
     "record_led_pin": 3,
     "temp_led_pin": 27,
