@@ -1,4 +1,4 @@
-from Adafruit_DHT import DHT11, read_retry
+from Adafruit_DHT import DHT22, read_retry
 from datetime import datetime
 from frogutils.parameters import Parameters
 from frogutils.compare import is_between
@@ -8,7 +8,7 @@ from time import sleep
 class Environment:
     def __init__(self, pars: Parameters) -> None:
         # define temperature and humidity device
-        self.dht_device = DHT11
+        self.dht_device = DHT22
 
         self.previous_time = datetime.now()
         self.humidity, self.temperature = read_retry(
