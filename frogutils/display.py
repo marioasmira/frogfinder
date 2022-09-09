@@ -63,17 +63,21 @@ class Display:
                 # retrieve the two values from the pipe
                 val1, val2 = pipe.recv()
 
-                # turn the two values into a list
-                list1 = [int(x) for x in str(val1)]
-                # if there's only one digit add a zero before
-                if len(list1) < 2:
-                    list1.insert(0, 0)
+                try:
+                    # turn the two values into a list
+                    list1 = [int(x) for x in str(val1)]
+                    # if there's only one digit add a zero before
+                    if len(list1) < 2:
+                        list1.insert(0, 0)
 
-                list2 = [int(x) for x in str(val2)]
-                # if there's only one digit add a zero before
-                if len(list2) < 2:
-                    list2.insert(0, 0)
-                digit_list = list1 + list2
+                    list2 = [int(x) for x in str(val2)]
+                    # if there's only one digit add a zero before
+                    if len(list2) < 2:
+                        list2.insert(0, 0)
+                    digit_list = list1 + list2
+                except ValueError as e:
+                    if pars.get_value("debug"):
+                        print("Found ValueError when reading temperature/humidity.")
 
             # stay on for 100 * 0.005 = 0.5 seconds
             for n in range(101):
